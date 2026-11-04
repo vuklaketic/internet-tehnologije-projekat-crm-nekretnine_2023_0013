@@ -10,9 +10,9 @@ import {
   RiCalendarLine,
   RiArrowRightLine,
   RiExchangeDollarLine,
-  RiAddLine,
 } from '@remixicon/react';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { DashboardCharts } from '@/components/dashboard/dashboard-charts';
 
 async function getCurrencyRate() {
   try {
@@ -37,6 +37,58 @@ export default async function DashboardPage() {
   const [clientCount] = await db.select({ count: sql<number>`count(*)::int` }).from(clients);
   const [leadCount] = await db.select({ count: sql<number>`count(*)::int` }).from(leads);
   const [viewingCount] = await db.select({ count: sql<number>`count(*)::int` }).from(viewings);
+
+  // Podaci za grafikon: lead-ovi po fazama
+  const rawLeadsByStage = await db
+    .select({
+      stage: leads.stage,
+      count: sql<number>`count(*)::int`,
+      totalValue: sql<number>`coalesce(sum(cast(${leads.valueEur} as numeric)), 0)::float`,
+    })
+    .from(leads)
+    .groupBy(leads.stage);
+
+  const stageLabels: Record<string, string> = {
+    novi: 'Novi',
+    kontaktiran: 'Kontaktiran',
+    razgledanje: 'Razgledanje',
+    ponuda: 'Ponuda',
+    zakljuceno: 'Zaključeno',
+    izgubljeno: 'Izgubljeno',
+  };
+
+  const stageData = Object.keys(stageLabels).map((key) => {
+    const found = rawLeadsByStage.find((item) => item.stage === key);
+    return {
+      name: stageLabels[key],
+      count: found ? found.count : 0,
+      value: found ? found.totalValue : 0,
+    };
+  });
+
+  // Podaci za grafikon: nekretnine po tipovima
+  const rawPropsByType = await db
+    .select({
+      type: properties.type,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(properties)
+    .groupBy(properties.type);
+
+  const typeLabels: Record<string, string> = {
+    stan: 'Stanovi',
+    kuca: 'Kuće',
+    lokal: 'Lokali',
+    plac: 'Placevi',
+  };
+
+  const typeData = Object.keys(typeLabels).map((key) => {
+    const found = rawPropsByType.find((item) => item.type === key);
+    return {
+      name: typeLabels[key],
+      count: found ? found.count : 0,
+    };
+  });
 
   // Najnovije nekretnine
   const recentProperties = await db
@@ -148,6 +200,9 @@ export default async function DashboardPage() {
           );
         })}
       </div>
+
+      {/* Interaktivni grafikoni (Recharts) */}
+      <DashboardCharts stageData={stageData} typeData={typeData} />
 
       {/* Brze akcije i pregledi */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

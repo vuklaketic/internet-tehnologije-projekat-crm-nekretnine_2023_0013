@@ -18,12 +18,15 @@ Aplikacija je realizovana u skladu sa propisanim standardima Katedre za elektron
 
 - **Fullstack radni okvir:** [Next.js](https://nextjs.org/) (App Router, React Server & Client komponente, Route Handlers)
 - **Jezik:** [TypeScript](https://www.typescriptlang.org/) (stroga tipizacija modela i interfejsa)
-- **Frontend & Dizajn:** [React](https://react.dev/), [Tailwind CSS](https://tailwindcss.com/), [@remixicon/react](https://remixicon.com/) ikonice
+- **Frontend & Dizajn:** [React](https://react.dev/), [Tailwind CSS](https://tailwindcss.com/), [Recharts](https://recharts.org/) (grafikoni), [Leaflet](https://leafletjs.com/) (interaktivne mape), [@remixicon/react](https://remixicon.com/) ikonice
 - **Baza podataka:** [PostgreSQL 17](https://www.postgresql.org/) u Docker kontejneru
 - **ORM:** [Drizzle ORM](https://orm.drizzle.team/) (`drizzle-kit` za migracije i generisanje šeme, `pg` drajver, `tsx` za seed)
 - **Autentifikacija & Autorizacija:** JWT (`jsonwebtoken`, HS256 algoritam) u bezbednom `httpOnly` istopolnom kolačiću (`auth`), hešovanje lozinki pomoću `bcrypt` (10 rundi)
 - **Validacija podataka:** [Zod](https://zod.dev/) za validaciju ulaznih podataka u API rutama
-- **Eksterni API:** Zvanični srednji kurs valuta preko `open.er-api.com` sa keširanjem odgovora
+- **Eksterni API 1:** Zvanični srednji kurs valuta preko `open.er-api.com` sa keširanjem odgovora
+- **Eksterni API 2:** OpenStreetMap / Nominatim API za geokodiranje adresa i lokaciju na mapi
+- **Testiranje & Kvalitet:** [Vitest](https://vitest.dev/) za automatizovano testiranje auth logike i helpera
+- **Dokumentacija:** OpenAPI 3.0 / Swagger specifikacija (`/api-docs` i `/api/openapi.json`)
 - **Kontejnerizacija & DevOps:** Docker, Docker Compose, GitHub Actions (CI/CD)
 
 ---
@@ -71,7 +74,12 @@ npm run db:migrate
 npm run db:seed
 ```
 
-### 6. Pokretanje razvojnog servera
+### 6. Pokretanje automatizovanih testova
+```bash
+npm run test
+```
+
+### 7. Pokretanje razvojnog servera
 ```bash
 npm run dev
 ```

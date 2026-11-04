@@ -42,6 +42,7 @@ export function Sidebar({ user }: SidebarProps) {
     { href: '/klijenti', label: 'Klijenti', icon: RiUserFollowLine },
     { href: '/leadovi', label: 'Prodajne prilike (Leads)', icon: RiKanbanView },
     { href: '/razgledanja', label: 'Razgledanja', icon: RiCalendarLine },
+    { href: '/api-docs', label: 'API Dokumentacija', icon: RiShieldUserLine },
   ];
 
   return (

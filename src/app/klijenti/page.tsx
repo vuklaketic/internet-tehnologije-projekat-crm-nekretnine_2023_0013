@@ -4,10 +4,10 @@ import React, { useState, useEffect } from 'react';
 import {
   RiAddLine,
   RiSearchLine,
-  RiUserFollowLine,
   RiMailLine,
   RiPhoneLine,
   RiDeleteBinLine,
+  RiDownloadLine,
 } from '@remixicon/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -103,6 +103,30 @@ export default function ClientsPage() {
     }
   };
 
+  const handleExportCSV = () => {
+    if (clients.length === 0) return;
+    const headers = ['ID', 'Ime i Prezime', 'Email', 'Telefon', 'Tip', 'Budzet (EUR)', 'Agent', 'Napomena'];
+    const rows = clients.map((c) => [
+      c.id,
+      `"${c.fullName.replace(/"/g, '""')}"`,
+      c.email,
+      `"${c.phone}"`,
+      c.type,
+      c.budgetEur || 0,
+      `"${(c.ownerName || '').replace(/"/g, '""')}"`,
+      `"${(c.notes || '').replace(/"/g, '""')}"`,
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `klijenti-export-${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="space-y-6 pb-12">
       {/* Zaglavlje */}
@@ -115,10 +139,16 @@ export default function ClientsPage() {
             Upravljanje kupcima, prodavcima i zakupcima nekretnina
           </p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)}>
-          <RiAddLine className="w-4 h-4" />
-          Dodaj novog klijenta
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={handleExportCSV} disabled={clients.length === 0}>
+            <RiDownloadLine className="w-4 h-4" />
+            Izvezi CSV
+          </Button>
+          <Button onClick={() => setIsModalOpen(true)}>
+            <RiAddLine className="w-4 h-4" />
+            Dodaj novog klijenta
+          </Button>
+        </div>
       </div>
 
       {/* Pretraga i filteri */}

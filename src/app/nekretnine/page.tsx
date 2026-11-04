@@ -1,15 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   RiAddLine,
   RiSearchLine,
-  RiFilter3Line,
-  RiBuildingLine,
   RiMapPinLine,
   RiHomeLine,
   RiDeleteBinLine,
-  RiEditLine,
+  RiDownloadLine,
+  RiExternalLinkLine,
 } from '@remixicon/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -121,6 +121,33 @@ export default function PropertiesPage() {
     }
   };
 
+  // CSV Export funkcionalnost
+  const handleExportCSV = () => {
+    if (properties.length === 0) return;
+    const headers = ['ID', 'Naslov', 'Tip', 'Namena', 'Cena (EUR)', 'Kvadratura (m2)', 'Sobe', 'Adresa', 'Grad', 'Status'];
+    const rows = properties.map((p) => [
+      p.id,
+      `"${p.title.replace(/"/g, '""')}"`,
+      p.type,
+      p.purpose,
+      p.priceEur,
+      p.areaM2,
+      p.rooms,
+      `"${p.address.replace(/"/g, '""')}"`,
+      `"${p.city.replace(/"/g, '""')}"`,
+      p.status,
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `nekretnine-export-${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="space-y-6 pb-12">
       {/* Naslov i akcija */}
@@ -133,10 +160,16 @@ export default function PropertiesPage() {
             Pregled, pretraga i ažuriranje svih stambenih i poslovnih objekata u ponudi
           </p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)}>
-          <RiAddLine className="w-4 h-4" />
-          Dodaj novu nekretninu
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={handleExportCSV} disabled={properties.length === 0}>
+            <RiDownloadLine className="w-4 h-4" />
+            Izvezi CSV
+          </Button>
+          <Button onClick={() => setIsModalOpen(true)}>
+            <RiAddLine className="w-4 h-4" />
+            Dodaj novu nekretninu
+          </Button>
+        </div>
       </div>
 
       {/* Filteri i pretraga */}
@@ -208,16 +241,16 @@ export default function PropertiesPage() {
           {properties.map((prop) => (
             <div
               key={prop.id}
-              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
             >
               <div>
                 {/* Slika ili placeholder */}
-                <div className="relative h-48 bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                <Link href={`/nekretnine/${prop.id}`} className="block relative h-48 bg-slate-100 dark:bg-slate-800 overflow-hidden">
                   {prop.imageUrl ? (
                     <img
                       src={prop.imageUrl}
                       alt={prop.title}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-slate-400">
@@ -230,7 +263,7 @@ export default function PropertiesPage() {
                   <div className="absolute bottom-3 right-3 bg-slate-900/80 backdrop-blur-xs text-white text-xs font-bold px-2.5 py-1 rounded-md">
                     {prop.purpose === 'prodaja' ? 'Prodaja' : 'Izdavanje'}
                   </div>
-                </div>
+                </Link>
 
                 {/* Informacije */}
                 <div className="p-5 space-y-3">
@@ -243,9 +276,11 @@ export default function PropertiesPage() {
                     </span>
                   </div>
 
-                  <h3 className="font-bold text-base text-slate-900 dark:text-white line-clamp-1">
-                    {prop.title}
-                  </h3>
+                  <Link href={`/nekretnine/${prop.id}`}>
+                    <h3 className="font-bold text-base text-slate-900 dark:text-white line-clamp-1 hover:text-blue-600 transition-colors">
+                      {prop.title}
+                    </h3>
+                  </Link>
 
                   <p className="text-xs text-slate-500 flex items-center gap-1.5">
                     <RiMapPinLine className="w-4 h-4 shrink-0 text-slate-400" />
@@ -262,12 +297,15 @@ export default function PropertiesPage() {
 
               {/* Akcije na dnu */}
               <div className="px-5 py-3 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <span className="text-[11px] text-slate-400">
-                  {new Date(prop.createdAt).toLocaleDateString('sr-RS')}
-                </span>
+                <Link
+                  href={`/nekretnine/${prop.id}`}
+                  className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                >
+                  Detalji i mapa <RiExternalLinkLine className="w-3.5 h-3.5" />
+                </Link>
                 <button
                   onClick={() => handleDelete(prop.id)}
-                  className="text-xs text-rose-500 hover:text-rose-700 font-medium p-1 flex items-center gap-1"
+                  className="text-xs text-rose-500 hover:text-rose-700 font-medium p-1 flex items-center gap-1 cursor-pointer"
                 >
                   <RiDeleteBinLine className="w-3.5 h-3.5" /> Obriši
                 </button>

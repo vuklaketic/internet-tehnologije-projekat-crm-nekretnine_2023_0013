@@ -20,16 +20,23 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { Modal } from '@/components/ui/modal';
 import { Pagination } from '@/components/ui/pagination';
 import { EmptyState } from '@/components/ui/empty-state';
+import { useProperties } from '@/hooks/useProperties';
 
 export default function PropertiesPage() {
-  const [properties, setProperties] = useState<any[]>([]);
-  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(6);
   const [q, setQ] = useState('');
   const [status, setStatus] = useState('');
   const [type, setType] = useState('');
-  const [loading, setLoading] = useState(true);
+
+  // Korišćenje sopstvenog custom hook-a za dohvatanje podataka
+  const { properties, total, loading, refetch } = useProperties({
+    page,
+    pageSize,
+    q,
+    status,
+    type,
+  });
 
   // Modal za dodavanje nekretnine
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -77,34 +84,6 @@ export default function PropertiesPage() {
     }
   };
 
-  const fetchProperties = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        page: String(page),
-        pageSize: String(pageSize),
-      });
-      if (q) params.set('q', q);
-      if (status) params.set('status', status);
-      if (type) params.set('type', type);
-
-      const res = await fetch(`/api/properties?${params.toString()}`);
-      if (res.ok) {
-        const data = await res.json();
-        setProperties(data.items || []);
-        setTotal(data.total || 0);
-      }
-    } catch (err) {
-      console.error('Fetch error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProperties();
-  }, [page, q, status, type]);
-
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormLoading(true);
@@ -133,7 +112,7 @@ export default function PropertiesPage() {
           description: '',
           imageUrl: '',
         });
-        fetchProperties();
+        refetch();
       }
     } catch (err) {
       console.error('Create error:', err);
@@ -146,7 +125,7 @@ export default function PropertiesPage() {
     if (!confirm('Da li ste sigurni da želite da obrišete ovu nekretninu?')) return;
     try {
       const res = await fetch(`/api/properties/${id}`, { method: 'DELETE' });
-      if (res.ok) fetchProperties();
+      if (res.ok) refetch();
     } catch (err) {
       console.error('Delete error:', err);
     }

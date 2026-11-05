@@ -25,8 +25,8 @@ Aplikacija je realizovana u skladu sa propisanim standardima Katedre za elektron
 - **Validacija podataka:** [Zod](https://zod.dev/) za validaciju ulaznih podataka u API rutama
 - **Eksterni API 1:** Zvanični srednji kurs valuta preko `open.er-api.com` sa keširanjem odgovora
 - **Eksterni API 2:** OpenStreetMap / Nominatim API za geokodiranje adresa i lokaciju na mapi
-- **Testiranje & Kvalitet:** [Vitest](https://vitest.dev/) za automatizovano testiranje auth logike i helpera
-- **Dokumentacija:** OpenAPI 3.0 / Swagger specifikacija (`/api-docs` i `/api/openapi.json`)
+- **Testiranje & Kvalitet:** [Vitest](https://vitest.dev/) za automatizovano testiranje auth logike, kursnih funkcija i validatora
+- **Dokumentacija:** OpenAPI 3.0 / Swagger specifikacija (`/api-docs` i `/api/openapi.json`), kao i detaljan ispitni vodič (`ODBRANA_VODIC.md`)
 - **Kontejnerizacija & DevOps:** Docker, Docker Compose, GitHub Actions (CI/CD)
 
 ---
@@ -109,6 +109,7 @@ Aplikacija će biti dostupna na adresi: [http://localhost:3000](http://localhost
 │   │   ├── layout.tsx          # Glavni layout sa sidebarom i ulogama
 │   │   └── page.tsx            # Kontrolna tabla (Dashboard) sa metrikama
 │   ├── components/             # Reusable UI komponente (Button, Input, Modal, ...)
+│   ├── hooks/                  # Custom React hook-ovi (useProperties, useCurrency)
 │   ├── db/                     # Drizzle ORM konfiguracija, šema i seed
 │   │   ├── index.ts            # Konekcija ka bazi (Pool + Drizzle)
 │   │   ├── schema.ts           # Definicija tabela i relacija

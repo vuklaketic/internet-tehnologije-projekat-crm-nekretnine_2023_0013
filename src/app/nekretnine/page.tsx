@@ -10,6 +10,8 @@ import {
   RiDeleteBinLine,
   RiDownloadLine,
   RiExternalLinkLine,
+  RiUploadCloud2Line,
+  RiCloseLine,
 } from '@remixicon/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,16 +20,23 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { Modal } from '@/components/ui/modal';
 import { Pagination } from '@/components/ui/pagination';
 import { EmptyState } from '@/components/ui/empty-state';
+import { useProperties } from '@/hooks/useProperties';
 
 export default function PropertiesPage() {
-  const [properties, setProperties] = useState<any[]>([]);
-  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(6);
   const [q, setQ] = useState('');
   const [status, setStatus] = useState('');
   const [type, setType] = useState('');
-  const [loading, setLoading] = useState(true);
+
+  // Korišćenje sopstvenog custom hook-a za dohvatanje podataka
+  const { properties, total, loading, refetch } = useProperties({
+    page,
+    pageSize,
+    q,
+    status,
+    type,
+  });
 
   // Modal za dodavanje nekretnine
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -46,33 +55,34 @@ export default function PropertiesPage() {
     imageUrl: '',
   });
 
-  const fetchProperties = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        page: String(page),
-        pageSize: String(pageSize),
-      });
-      if (q) params.set('q', q);
-      if (status) params.set('status', status);
-      if (type) params.set('type', type);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState('');
 
-      const res = await fetch(`/api/properties?${params.toString()}`);
-      if (res.ok) {
-        const data = await res.json();
-        setProperties(data.items || []);
-        setTotal(data.total || 0);
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    setUploadError('');
+    try {
+      const data = new FormData();
+      data.append('file', file);
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: data,
+      });
+      const result = await res.json();
+      if (res.ok && result.url) {
+        setFormData((prev) => ({ ...prev, imageUrl: result.url }));
+      } else {
+        setUploadError(result.error || 'Neuspešno otpremanje slike');
       }
-    } catch (err) {
-      console.error('Fetch error:', err);
+    } catch {
+      setUploadError('Greška pri komunikaciji sa serverom');
     } finally {
-      setLoading(false);
+      setUploadingImage(false);
     }
   };
-
-  useEffect(() => {
-    fetchProperties();
-  }, [page, q, status, type]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,7 +112,7 @@ export default function PropertiesPage() {
           description: '',
           imageUrl: '',
         });
-        fetchProperties();
+        refetch();
       }
     } catch (err) {
       console.error('Create error:', err);
@@ -115,7 +125,7 @@ export default function PropertiesPage() {
     if (!confirm('Da li ste sigurni da želite da obrišete ovu nekretninu?')) return;
     try {
       const res = await fetch(`/api/properties/${id}`, { method: 'DELETE' });
-      if (res.ok) fetchProperties();
+      if (res.ok) refetch();
     } catch (err) {
       console.error('Delete error:', err);
     }
@@ -405,12 +415,75 @@ export default function PropertiesPage() {
             />
           </div>
 
-          <Input
-            label="URL Slike"
-            placeholder="https://images.unsplash.com/..."
-            value={formData.imageUrl}
-            onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-          />
+          {/* Otpremanje slike ili unos URL-a */}
+          <div className="space-y-2">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+              Fotografija nekretnine
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Opcija 1: Upload fajla */}
+              <div className="border border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-3 text-center bg-slate-50/50 dark:bg-slate-800/30 flex flex-col items-center justify-center relative">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/jpg"
+                  onChange={handleFileUpload}
+                  disabled={uploadingImage}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                />
+                <RiUploadCloud2Line className="w-6 h-6 text-blue-600 dark:text-blue-400 mb-1" />
+                <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                  {uploadingImage ? 'Otpremanje u toku...' : 'Izaberite sliku sa računara'}
+                </span>
+                <span className="text-[11px] text-slate-400 mt-0.5">JPG, PNG, WebP do 5MB</span>
+              </div>
+
+              {/* Opcija 2: Direktni URL */}
+              <div>
+                <Input
+                  label="Ili unesite direktan URL"
+                  placeholder="https://..."
+                  value={formData.imageUrl}
+                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                />
+              </div>
+            </div>
+
+            {uploadError && (
+              <p className="text-xs text-rose-500 font-medium">{uploadError}</p>
+            )}
+
+            {formData.imageUrl && (
+              <div className="flex items-center gap-3 p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                {/* Pregled slike */}
+                <div className="relative w-12 h-12 rounded overflow-hidden bg-slate-200 shrink-0">
+                  <img
+                    src={formData.imageUrl}
+                    alt="Pregled"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-mono truncate text-slate-600 dark:text-slate-400">
+                    {formData.imageUrl}
+                  </p>
+                  <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                    ✓ Slika izabrana
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, imageUrl: '' })}
+                  className="p-1 text-slate-400 hover:text-rose-500 transition-colors"
+                  title="Ukloni sliku"
+                >
+                  <RiCloseLine className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
 
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">

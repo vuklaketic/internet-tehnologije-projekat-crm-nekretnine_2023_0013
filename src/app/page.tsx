@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { db } from '@/db';
-import { properties, clients, leads, viewings } from '@/db/schema';
+import { properties, clients, leads, viewings, users } from '@/db/schema';
 import { getCurrentUser } from '@/lib/auth';
 import { sql, eq } from 'drizzle-orm';
 import {
@@ -89,6 +89,23 @@ export default async function DashboardPage() {
       count: found ? found.count : 0,
     };
   });
+
+  // Podaci za grafikon: učinak agenata
+  const rawAgentPerformance = await db
+    .select({
+      agentName: sql<string>`coalesce(${users.fullName}, 'Nedodeljeno')`,
+      dealsCount: sql<number>`count(*)::int`,
+      volumeEur: sql<number>`coalesce(sum(cast(${leads.valueEur} as numeric)), 0)::float`,
+    })
+    .from(leads)
+    .leftJoin(users, eq(leads.agentId, users.id))
+    .groupBy(users.fullName);
+
+  const agentData = rawAgentPerformance.map((item) => ({
+    agentName: item.agentName,
+    dealsCount: item.dealsCount,
+    volumeEur: item.volumeEur,
+  }));
 
   // Najnovije nekretnine
   const recentProperties = await db
@@ -202,7 +219,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Interaktivni grafikoni (Recharts) */}
-      <DashboardCharts stageData={stageData} typeData={typeData} />
+      <DashboardCharts stageData={stageData} typeData={typeData} agentData={agentData} />
 
       {/* Brze akcije i pregledi */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

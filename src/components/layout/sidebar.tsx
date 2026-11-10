@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useCurrency } from '@/hooks/useCurrency';
+import { CurrencySelector } from '@/context/currency-context';
 import {
   RiDashboardLine,
   RiBuildingLine,
@@ -26,7 +26,6 @@ interface SidebarProps {
 export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { rate, loading: currencyLoading } = useCurrency();
 
   const handleLogout = async () => {
     try {
@@ -88,18 +87,18 @@ export function Sidebar({ user }: SidebarProps) {
 
       {/* User profile & Logout */}
       <div className="p-4 border-t border-slate-800 space-y-3">
-        {/* Live kurs valuta widget */}
-        <div className="p-2.5 rounded-lg bg-slate-800/60 border border-slate-700/60">
+        {/* Live konvertor valuta (Combo Box) */}
+        <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-700/80 space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span className="text-[11px] font-medium text-slate-300">Kurs EUR / RSD</span>
+              <span className="text-[11px] font-semibold text-slate-200">Aktivna valuta</span>
             </div>
-            <span className="text-xs font-mono font-bold text-white">
-              {currencyLoading ? '...' : `${rate.toFixed(2)} RSD`}
-            </span>
+            <CurrencySelector />
           </div>
-          <p className="text-[10px] text-slate-400 mt-1">open.er-api.com (live)</p>
+          <p className="text-[10px] text-slate-400">
+            open.er-api.com • automatska konverzija cena
+          </p>
         </div>
 
         {user && (

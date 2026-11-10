@@ -34,6 +34,7 @@ export async function GET(request: Request) {
     const status = searchParams.get('status');
     const type = searchParams.get('type');
     const purpose = searchParams.get('purpose');
+    const sort = searchParams.get('sort') || 'newest';
     const page = parseInt(searchParams.get('page') || '1', 10);
     const pageSize = parseInt(searchParams.get('pageSize') || '10', 10);
     const offset = (page - 1) * pageSize;
@@ -58,6 +59,17 @@ export async function GET(request: Request) {
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
+    let orderExpr = desc(properties.createdAt);
+    if (sort === 'price_asc') {
+      orderExpr = sql`cast(${properties.priceEur} as numeric) asc`;
+    } else if (sort === 'price_desc') {
+      orderExpr = sql`cast(${properties.priceEur} as numeric) desc`;
+    } else if (sort === 'area_asc') {
+      orderExpr = sql`${properties.areaM2} asc`;
+    } else if (sort === 'area_desc') {
+      orderExpr = sql`${properties.areaM2} desc`;
+    }
+
     const items = await db
       .select({
         id: properties.id,
@@ -79,7 +91,7 @@ export async function GET(request: Request) {
       .from(properties)
       .leftJoin(users, eq(properties.agentId, users.id))
       .where(whereClause)
-      .orderBy(desc(properties.createdAt))
+      .orderBy(orderExpr)
       .limit(pageSize)
       .offset(offset);
 

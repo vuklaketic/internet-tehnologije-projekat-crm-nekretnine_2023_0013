@@ -1,14 +1,22 @@
 import { NextResponse } from 'next/server';
 
-let cachedRate: { rsd: number; timestamp: number } | null = null;
+let cachedRates: { rates: Record<string, number>; timestamp: number } | null = null;
 const CACHE_DURATION = 60 * 60 * 1000; // 1 sat
+
+const DEFAULT_RATES: Record<string, number> = {
+  EUR: 1,
+  RSD: 117.2,
+  USD: 1.08,
+  CHF: 0.96,
+  GBP: 0.85,
+};
 
 export async function GET() {
   const now = Date.now();
-  if (cachedRate && now - cachedRate.timestamp < CACHE_DURATION) {
+  if (cachedRates && now - cachedRates.timestamp < CACHE_DURATION) {
     return NextResponse.json({
       base: 'EUR',
-      rsd: cachedRate.rsd,
+      rates: cachedRates.rates,
       cached: true,
     });
   }
@@ -24,21 +32,28 @@ export async function GET() {
     }
 
     const data = await res.json();
-    const rsd = data.rates?.RSD || 117.2;
+    const fetchedRates = data.rates || {};
 
-    cachedRate = { rsd, timestamp: now };
+    const rates: Record<string, number> = {
+      EUR: 1,
+      RSD: Number(fetchedRates.RSD) || DEFAULT_RATES.RSD,
+      USD: Number(fetchedRates.USD) || DEFAULT_RATES.USD,
+      CHF: Number(fetchedRates.CHF) || DEFAULT_RATES.CHF,
+      GBP: Number(fetchedRates.GBP) || DEFAULT_RATES.GBP,
+    };
+
+    cachedRates = { rates, timestamp: now };
 
     return NextResponse.json({
       base: 'EUR',
-      rsd,
+      rates,
       cached: false,
     });
   } catch (err: any) {
     console.error('Currency API error:', err);
-    // Siguran fallback
     return NextResponse.json({
       base: 'EUR',
-      rsd: cachedRate ? cachedRate.rsd : 117.2,
+      rates: cachedRates ? cachedRates.rates : DEFAULT_RATES,
       cached: true,
       fallback: true,
     });

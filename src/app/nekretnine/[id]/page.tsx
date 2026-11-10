@@ -16,6 +16,7 @@ import {
 } from '@remixicon/react';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { PropertyMapWrapper } from '@/components/map/property-map-wrapper';
+import { PropertyPriceCard } from '@/components/property/property-price-card';
 
 async function getCurrencyRate() {
   try {
@@ -120,16 +121,8 @@ export default async function PropertyDetailPage({
               </p>
             </div>
 
-            {/* Prikaz cene u EUR i RSD */}
-            <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl border border-slate-100 dark:border-slate-800 text-right">
-              <div className="text-2xl md:text-3xl font-extrabold text-blue-600">
-                {priceEurNum.toLocaleString('sr-RS')} €
-              </div>
-              <div className="text-xs text-slate-500 mt-0.5 flex items-center justify-end gap-1">
-                <RiExchangeDollarLine className="w-3.5 h-3.5 text-emerald-500" />
-                cca {priceRsd.toLocaleString('sr-RS')} RSD (1 EUR = {eurRsdRate.toFixed(2)})
-              </div>
-            </div>
+            {/* Prikaz cene sa konverzijom valuta */}
+            <PropertyPriceCard priceEur={prop.priceEur} />
           </div>
 
           {/* Grid parametara */}

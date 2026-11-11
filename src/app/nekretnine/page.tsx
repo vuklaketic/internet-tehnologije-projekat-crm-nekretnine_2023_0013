@@ -30,6 +30,16 @@ export default function PropertiesPage() {
   const [status, setStatus] = useState('');
   const [type, setType] = useState('');
   const [sort, setSort] = useState('newest');
+  const [userRole, setUserRole] = useState<string>('agent');
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.user?.role) setUserRole(d.user.role);
+      })
+      .catch(() => {});
+  }, []);
 
   const { formatPrice } = useCurrencyContext();
 
@@ -180,10 +190,12 @@ export default function PropertiesPage() {
             <RiDownloadLine className="w-4 h-4" />
             Izvezi CSV
           </Button>
-          <Button onClick={() => setIsModalOpen(true)}>
-            <RiAddLine className="w-4 h-4" />
-            Dodaj novu nekretninu
-          </Button>
+          {userRole !== 'kupac' && (
+            <Button onClick={() => setIsModalOpen(true)}>
+              <RiAddLine className="w-4 h-4" />
+              Dodaj novu nekretninu
+            </Button>
+          )}
         </div>
       </div>
 
@@ -341,12 +353,14 @@ export default function PropertiesPage() {
                 >
                   Detalji i mapa <RiExternalLinkLine className="w-3.5 h-3.5" />
                 </Link>
-                <button
-                  onClick={() => handleDelete(prop.id)}
-                  className="text-xs text-rose-500 hover:text-rose-700 font-medium p-1 flex items-center gap-1 cursor-pointer"
-                >
-                  <RiDeleteBinLine className="w-3.5 h-3.5" /> Obriši
-                </button>
+                {userRole !== 'kupac' && (
+                  <button
+                    onClick={() => handleDelete(prop.id)}
+                    className="text-xs text-rose-500 hover:text-rose-700 font-medium p-1 flex items-center gap-1 cursor-pointer"
+                  >
+                    <RiDeleteBinLine className="w-3.5 h-3.5" /> Obriši
+                  </button>
+                )}
               </div>
             </div>
           ))}

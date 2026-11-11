@@ -16,7 +16,7 @@ export function AuthForm({ type }: AuthFormProps) {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'agent' | 'admin'>('agent');
+  const [role, setRole] = useState<'agent' | 'admin' | 'kupac'>('kupac');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -108,7 +108,18 @@ export function AuthForm({ type }: AuthFormProps) {
             <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
               Uloga
             </label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setRole('kupac')}
+                className={`py-2 text-xs font-semibold rounded-lg border transition-all ${
+                  role === 'kupac'
+                    ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300'
+                    : 'border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400'
+                }`}
+              >
+                Kupac
+              </button>
               <button
                 type="button"
                 onClick={() => setRole('agent')}
@@ -118,7 +129,7 @@ export function AuthForm({ type }: AuthFormProps) {
                     : 'border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400'
                 }`}
               >
-                Agent prodaje
+                Agent
               </button>
               <button
                 type="button"
@@ -129,7 +140,7 @@ export function AuthForm({ type }: AuthFormProps) {
                     : 'border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400'
                 }`}
               >
-                Administrator
+                Admin
               </button>
             </div>
           </div>
@@ -142,12 +153,19 @@ export function AuthForm({ type }: AuthFormProps) {
 
       <div className="mt-6 text-center text-xs text-slate-500">
         {type === 'login' ? (
-          <p>
-            Nemate kreiran nalog?{' '}
-            <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-500 underline">
-              Registrujte se
-            </Link>
-          </p>
+          <div className="space-y-2">
+            <p>
+              Nemate kreiran nalog?{' '}
+              <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-500 underline">
+                Registrujte se
+              </Link>
+            </p>
+            <p>
+              <Link href="/zaboravljena-lozinka" className="text-slate-400 hover:text-blue-600 underline">
+                Zaboravili ste lozinku?
+              </Link>
+            </p>
+          </div>
         ) : (
           <p>
             Već imate kreiran nalog?{' '}
@@ -160,9 +178,10 @@ export function AuthForm({ type }: AuthFormProps) {
 
       {type === 'login' && (
         <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-400 space-y-1">
-          <p className="font-semibold text-slate-500">Demo nalozi za testiranje:</p>
+          <p className="font-semibold text-slate-500">Demo nalozi za testiranje (3 uloge):</p>
           <p>Admin: <span className="font-mono text-slate-700 dark:text-slate-300">admin@crm.rs</span> / <span className="font-mono text-slate-700 dark:text-slate-300">Test1234!</span></p>
           <p>Agent: <span className="font-mono text-slate-700 dark:text-slate-300">agent1@crm.rs</span> / <span className="font-mono text-slate-700 dark:text-slate-300">Test1234!</span></p>
+          <p>Kupac: <span className="font-mono text-slate-700 dark:text-slate-300">kupac@crm.rs</span> / <span className="font-mono text-slate-700 dark:text-slate-300">Test1234!</span></p>
         </div>
       )}
     </div>

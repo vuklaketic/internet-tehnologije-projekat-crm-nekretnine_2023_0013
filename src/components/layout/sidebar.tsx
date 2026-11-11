@@ -37,14 +37,21 @@ export function Sidebar({ user }: SidebarProps) {
     }
   };
 
+  const isBuyer = user?.role === 'kupac';
+
   const navItems = [
-    { href: '/', label: 'Kontrolna tabla', icon: RiDashboardLine },
-    { href: '/nekretnine', label: 'Nekretnine', icon: RiBuildingLine },
-    { href: '/klijenti', label: 'Klijenti', icon: RiUserFollowLine },
-    { href: '/leadovi', label: 'Prodajne prilike (Leads)', icon: RiKanbanView },
-    { href: '/razgledanja', label: 'Razgledanja', icon: RiCalendarLine },
-    { href: '/api-docs', label: 'API Dokumentacija', icon: RiShieldUserLine },
-  ];
+    { href: '/', label: 'Kontrolna tabla', icon: RiDashboardLine, visible: true },
+    { href: '/nekretnine', label: 'Nekretnine', icon: RiBuildingLine, visible: true },
+    { href: '/klijenti', label: 'Klijenti', icon: RiUserFollowLine, visible: !isBuyer },
+    { href: '/leadovi', label: 'Prodajne prilike (Leads)', icon: RiKanbanView, visible: !isBuyer },
+    {
+      href: '/razgledanja',
+      label: isBuyer ? 'Moja razgledanja' : 'Razgledanja',
+      icon: RiCalendarLine,
+      visible: true,
+    },
+    { href: '/api-docs', label: 'API Dokumentacija', icon: RiShieldUserLine, visible: true },
+  ].filter((item) => item.visible);
 
   return (
     <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 h-screen sticky top-0 text-slate-300">
@@ -117,6 +124,8 @@ export function Sidebar({ user }: SidebarProps) {
                   className={`inline-block px-1.5 py-0.2 rounded text-[10px] font-semibold uppercase ${
                     user.role === 'admin'
                       ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      : user.role === 'kupac'
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                       : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
                   }`}
                 >

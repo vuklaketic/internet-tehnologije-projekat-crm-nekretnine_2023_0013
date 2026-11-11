@@ -10,7 +10,7 @@ const registerSchema = z.object({
   fullName: z.string().min(2, 'Ime i prezime moraju imati bar 2 karaktera'),
   email: z.string().email('Neispravna email adresa'),
   password: z.string().min(6, 'Lozinka mora imati najmanje 6 karaktera'),
-  role: z.enum(['admin', 'agent']).default('agent'),
+  role: z.enum(['admin', 'agent', 'kupac']).default('kupac'),
 });
 
 export async function POST(request: Request) {

@@ -181,6 +181,25 @@ export default async function PropertyDetailPage({
             )}
           </div>
 
+          {/* Zakazivanje razgledanja */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900">
+            <div>
+              <p className="text-sm font-bold text-blue-950 dark:text-blue-100">
+                Želite da pogledate ovu nekretninu uživo?
+              </p>
+              <p className="text-xs text-blue-700 dark:text-blue-300 mt-0.5">
+                Zakažite direktan termin razgledanja sa nadležnim agentom.
+              </p>
+            </div>
+            <Link
+              href="/razgledanja"
+              className="px-4 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-2xs shrink-0 flex items-center justify-center gap-1.5"
+            >
+              <RiCalendarLine className="w-4 h-4" />
+              Zakaži termin razgledanja
+            </Link>
+          </div>
+
           {/* Lokacija na mapi (Nominatim Geocoding + Leaflet) */}
           <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
             <div className="flex items-center justify-between">

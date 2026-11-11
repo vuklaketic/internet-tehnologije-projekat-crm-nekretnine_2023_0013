@@ -100,7 +100,7 @@ export async function POST(request: Request) {
         .from(properties)
         .where(eq(properties.id, parsed.data.propertyId))
         .limit(1);
-      finalAgentId = prop?.agentId || (user.role === 'agent' ? user.id : null);
+      finalAgentId = prop?.agentId || (user.role === 'agent' ? user.id : undefined);
     }
 
     const [newViewing] = await db

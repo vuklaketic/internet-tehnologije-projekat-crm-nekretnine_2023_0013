@@ -8,6 +8,7 @@ export interface UsePropertiesParams {
   q?: string;
   status?: string;
   type?: string;
+  sort?: string;
 }
 
 export function useProperties({
@@ -16,6 +17,7 @@ export function useProperties({
   q = '',
   status = '',
   type = '',
+  sort = 'newest',
 }: UsePropertiesParams = {}) {
   const [properties, setProperties] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
@@ -33,6 +35,7 @@ export function useProperties({
       if (q) params.set('q', q);
       if (status) params.set('status', status);
       if (type) params.set('type', type);
+      if (sort) params.set('sort', sort);
 
       const res = await fetch(`/api/properties?${params.toString()}`);
       if (!res.ok) {
@@ -47,7 +50,7 @@ export function useProperties({
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, q, status, type]);
+  }, [page, pageSize, q, status, type, sort]);
 
   useEffect(() => {
     fetchProperties();

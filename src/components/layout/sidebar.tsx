@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useCurrency } from '@/hooks/useCurrency';
+import { CurrencySelector } from '@/context/currency-context';
 import {
   RiDashboardLine,
   RiBuildingLine,
@@ -26,7 +26,6 @@ interface SidebarProps {
 export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { rate, loading: currencyLoading } = useCurrency();
 
   const handleLogout = async () => {
     try {
@@ -38,14 +37,21 @@ export function Sidebar({ user }: SidebarProps) {
     }
   };
 
+  const isBuyer = user?.role === 'kupac';
+
   const navItems = [
-    { href: '/', label: 'Kontrolna tabla', icon: RiDashboardLine },
-    { href: '/nekretnine', label: 'Nekretnine', icon: RiBuildingLine },
-    { href: '/klijenti', label: 'Klijenti', icon: RiUserFollowLine },
-    { href: '/leadovi', label: 'Prodajne prilike (Leads)', icon: RiKanbanView },
-    { href: '/razgledanja', label: 'Razgledanja', icon: RiCalendarLine },
-    { href: '/api-docs', label: 'API Dokumentacija', icon: RiShieldUserLine },
-  ];
+    { href: '/', label: 'Kontrolna tabla', icon: RiDashboardLine, visible: true },
+    { href: '/nekretnine', label: 'Nekretnine', icon: RiBuildingLine, visible: true },
+    { href: '/klijenti', label: 'Klijenti', icon: RiUserFollowLine, visible: !isBuyer },
+    { href: '/leadovi', label: 'Prodajne prilike (Leads)', icon: RiKanbanView, visible: !isBuyer },
+    {
+      href: '/razgledanja',
+      label: isBuyer ? 'Moja razgledanja' : 'Razgledanja',
+      icon: RiCalendarLine,
+      visible: true,
+    },
+    { href: '/api-docs', label: 'API Dokumentacija', icon: RiShieldUserLine, visible: true },
+  ].filter((item) => item.visible);
 
   return (
     <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 h-screen sticky top-0 text-slate-300">
@@ -88,18 +94,18 @@ export function Sidebar({ user }: SidebarProps) {
 
       {/* User profile & Logout */}
       <div className="p-4 border-t border-slate-800 space-y-3">
-        {/* Live kurs valuta widget */}
-        <div className="p-2.5 rounded-lg bg-slate-800/60 border border-slate-700/60">
+        {/* Live konvertor valuta (Combo Box) */}
+        <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-700/80 space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span className="text-[11px] font-medium text-slate-300">Kurs EUR / RSD</span>
+              <span className="text-[11px] font-semibold text-slate-200">Aktivna valuta</span>
             </div>
-            <span className="text-xs font-mono font-bold text-white">
-              {currencyLoading ? '...' : `${rate.toFixed(2)} RSD`}
-            </span>
+            <CurrencySelector />
           </div>
-          <p className="text-[10px] text-slate-400 mt-1">open.er-api.com (live)</p>
+          <p className="text-[10px] text-slate-400">
+            open.er-api.com • automatska konverzija cena
+          </p>
         </div>
 
         {user && (
@@ -118,6 +124,8 @@ export function Sidebar({ user }: SidebarProps) {
                   className={`inline-block px-1.5 py-0.2 rounded text-[10px] font-semibold uppercase ${
                     user.role === 'admin'
                       ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      : user.role === 'kupac'
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                       : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
                   }`}
                 >

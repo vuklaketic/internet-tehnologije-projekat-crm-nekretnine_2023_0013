@@ -69,6 +69,18 @@ U direktorijumu `src/hooks/` kreirani su sopstveni višekratno iskoristivi hook-
 - Ako su kredencijali ispravni, generiše se JSON Web Token (JWT) potpisan tajnim ključem (`JWT_SECRET`) algoritmom HS256 sa rokom važenja od 7 dana.
 - Token se upisuje u **HTTP-Only kolačić** (`auth`).
 
+### Koje su tri korisničke uloge u sistemu i kako se razlikuju njihove funkcionalnosti?
+U skladu sa ispitnim zahtevom za minimum 3 uloge, u sistemu postoje:
+1. **`admin` (Administrator sistema):** Puni uvid u sve aspekte poslovanja – upravljanje svim nekretninama, svim klijentima, prodajnim prilikama svih agenata, analitičkim izveštajima i nalozima.
+2. **`agent` (Agent prodaje):** Pristup internoj CRM evidenciji – upravljanje dodeljenim klijentima, praćenje sopstvenih prodajnih prilika kroz Kanban levak, dodavanje i ažuriranje nekretnina, zakazivanje razgledanja.
+3. **`kupac` (Registrovani korisnik / Kupac):** Korisnički portal – pregled kataloga sa pretragom, filtriranjem i sortiranjem, uvid u interaktivnu mapu, mogućnost zakazivanja razgledanja za željenu nekretninu, i pregled isključivo sopstvenih zakazanih termina ("Moja razgledanja"). Kupac nema pristup internim CRM podacima agencije niti može brisati nekretnine.
+
+### Kako je implementiran oporavak zaboravljene lozinke?
+Kreirana je javna ruta `/zaboravljena-lozinka` i prateći endpoint `POST /api/auth/reset-password`:
+- Korisnik unosi registrovanu email adresu, novu lozinku i potvrdu lozinke.
+- Validacija proverava format i poklapanje lozinki (minimalno 6 karaktera).
+- Nova lozinka se hešuje algoritmom `bcrypt` (10 rundi) i trajno ažurira u bazi podataka.
+
 ### Zašto čuvamo JWT u HTTP-Only Cookie-ju umesto u `localStorage`?
 - Podaci u `localStorage` su dostupni klijentskom JavaScript kodu, što znači da u slučaju XSS (Cross-Site Scripting) ranjivosti napadač može jednostavno ukrasti token (`localStorage.getItem('token')`).
 - `httpOnly: true` sprečava JavaScript pristup kolačiću u browseru.
@@ -76,7 +88,7 @@ U direktorijumu `src/hooks/` kreirani su sopstveni višekratno iskoristivi hook-
 
 ### Koja je razlika između HTTP 401 i HTTP 403 status koda?
 - **401 Unauthorized:** Korisnik **nije autentifikovan** (nema validan JWT token ili token je istekao).
-- **403 Forbidden:** Korisnik je **autentifikovan**, ali **nema dovoljne privilegije** (autorizaciju) za izvršenje akcije (npr. agent pokušava da pristupi administratorskim funkcijama ili da obriše tuđeg klijenta).
+- **403 Forbidden:** Korisnik je **autentifikovan**, ali **nema dovoljne privilegije** (autorizaciju) za izvršenje akcije (npr. kupac pokušava da pristupi administratorskim funkcijama ili agent pokušava da obriše tuđeg klijenta).
 
 ---
 
@@ -84,11 +96,24 @@ U direktorijumu `src/hooks/` kreirani su sopstveni višekratno iskoristivi hook-
 
 ### Koji eksterni API-ji se koriste u projektu (zahtev za ocenu 10)?
 1. **Open Exchange Rates API (`https://open.er-api.com/v6/latest/EUR`):**
-   - Dohvata ažuran kurs evra u odnosu na dinar i ostale valute.
-   - Implementirano je serversko keširanje (Next.js `revalidate: 3600` i u memoriji) kako se ne bi prekoračio rate-limit eksternog servisa i kako bi aplikacija radila brzo i u offline/fallback režimu.
+   - Dohvata ažurne kurseve valuta (`EUR`, `RSD`, `USD`, `CHF`, `GBP`).
+   - Implementirano je serversko keširanje (Next.js `revalidate: 3600` i u memoriji) radi zaštite od rate-limita.
+   - **Zahtev za ocenu 10:** U aplikaciji nije implementiran samo prosti kalkulator unosa, već **globalni Combo Box birač valuta** (`CurrencySelector`). Izborom bilo koje valute (npr. RSD, USD, CHF, GBP) **cene svih nekretnina u katalogu, na karticama, detaljnom prikazu i kontrolnoj tabli automatski se u realnom vremenu rekalkulišu i formatiraju**.
 2. **OpenStreetMap Nominatim Geocoding API + Leaflet:**
    - Prilikom kreiranja i prikaza nekretnine, adresa i grad se geokodiraju u geografsku širinu i dužinu (`lat`, `lng`).
    - Na detaljnoj stranici nekretnine renderuje se interaktivna mapa sa prilagođenim pinom i kontrolama zumiranja bez zavisnosti od komercijalnih Google Maps ključeva.
+
+### Kako je realizovano sortiranje i pretraga?
+- Na stranici `/nekretnine` omogućen je kombinovani upit: tekstualna pretraga (`q`), filtriranje po tipu i statusu, i **sortiranje po 5 kriterijuma** (Najnovije, Cena rastuće, Cena opadajuće, Kvadratura manja, Kvadratura veća).
+- API ruta `/api/properties` dinamički gradi SQL upit sa `ORDER BY` klauzulom i odgovarajućim indeksima.
+
+### Navedite 5 različitih tipova migracija u bazi podataka:
+U `src/db/migrations` implementirano je 5 distinktivnih operacija migracije:
+1. `CREATE TABLE`: Kreiranje osnovnih tabela (`users`, `properties`, `clients`, `leads`, `viewings`).
+2. `ADD CONSTRAINT ... FOREIGN KEY`: Definisanje referencijalnog integriteta između tabela sa `ON DELETE CASCADE / SET NULL`.
+3. `ADD CONSTRAINT ... UNIQUE`: Definisanje jedinstvenih ograničenja (`users_email_unique`).
+4. `ALTER COLUMN SET DEFAULT`: Izmena defaultne vrednosti kolone u postojećoj tabeli (`users.role` promenjen na `kupac`).
+5. `CREATE INDEX`: Kreiranje B-tree indeksa za optimizaciju upita nad kolonama `city`, `type` i `status` na tabeli `properties`.
 
 ### Kako je rešen izvoz podataka (CSV Export)?
 Na stranicama `/nekretnine` i `/klijenti` omogućeno je klijentsko generisanje CSV fajla:

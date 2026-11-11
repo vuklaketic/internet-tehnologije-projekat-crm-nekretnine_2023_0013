@@ -14,6 +14,7 @@ async function main() {
   const adminId = 'a0000000-0000-0000-0000-000000000001';
   const agent1Id = 'a0000000-0000-0000-0000-000000000002';
   const agent2Id = 'a0000000-0000-0000-0000-000000000003';
+  const kupacId = 'a0000000-0000-0000-0000-000000000004';
 
   // Obriši postojeće podatke radi idempotencije
   await db.delete(activities);
@@ -44,6 +45,13 @@ async function main() {
       passHash,
       fullName: 'Jelena Jovanović',
       role: 'agent',
+    },
+    {
+      id: kupacId,
+      email: 'kupac@crm.rs',
+      passHash,
+      fullName: 'Nikola Nikolić (Kupac)',
+      role: 'kupac',
     },
   ]);
 

@@ -37,9 +37,10 @@ Za potrebe demonstracije i odbrane rada, baza je unapred inicijalizovana sa sled
 
 | Uloga | Email | Lozinka | Opis ovlašćenja |
 | :--- | :--- | :--- | :--- |
-| **Administrator** | `admin@crm.rs` | `Test1234!` | Potpuni uvid i upravljanje svim nekretninama, klijentima i lead-ovima. |
+| **Administrator** | `admin@crm.rs` | `Test1234!` | Potpuni uvid i upravljanje svim nekretninama, klijentima, lead-ovima i analitici. |
 | **Agent prodaje 1** | `agent1@crm.rs` | `Test1234!` | Pristup sopstvenim nekretninama i dodeljenim klijentima/lead-ovima. |
 | **Agent prodaje 2** | `agent2@crm.rs` | `Test1234!` | Pristup sopstvenim nekretninama i dodeljenim klijentima/lead-ovima. |
+| **Kupac (Običan korisnik)** | `kupac@crm.rs` | `Test1234!` | Pregled kataloga nekretnina, konverzija valuta, zakazivanje i pregled sopstvenih razgledanja. |
 
 ---
 
@@ -106,9 +107,11 @@ Aplikacija će biti dostupna na adresi: [http://localhost:3000](http://localhost
 │   │   ├── razgledanja/        # Raspored termina razgledanja
 │   │   ├── login/              # Stranica prijave
 │   │   ├── register/           # Stranica registracije
+│   │   ├── zaboravljena-lozinka/ # Stranica za oporavak lozinke
 │   │   ├── layout.tsx          # Glavni layout sa sidebarom i ulogama
 │   │   └── page.tsx            # Kontrolna tabla (Dashboard) sa metrikama
 │   ├── components/             # Reusable UI komponente (Button, Input, Modal, ...)
+│   ├── context/                # Globalni React Context (CurrencyContext i konverzija cena)
 │   ├── hooks/                  # Custom React hook-ovi (useProperties, useCurrency)
 │   ├── db/                     # Drizzle ORM konfiguracija, šema i seed
 │   │   ├── index.ts            # Konekcija ka bazi (Pool + Drizzle)

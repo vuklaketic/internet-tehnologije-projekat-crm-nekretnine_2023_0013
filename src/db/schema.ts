@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, text, integer, numeric, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, text, integer, numeric, timestamp, index } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Korisnici sistema
@@ -7,7 +7,7 @@ export const users = pgTable('users', {
   email: varchar('email', { length: 255 }).notNull().unique(),
   passHash: varchar('pass_hash', { length: 255 }).notNull(),
   fullName: varchar('full_name', { length: 150 }).notNull(),
-  role: varchar('role', { length: 20 }).notNull().default('agent'), // 'admin' | 'agent'
+  role: varchar('role', { length: 20 }).notNull().default('kupac'), // 'admin' | 'agent' | 'kupac'
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -29,7 +29,11 @@ export const properties = pgTable('properties', {
   imageUrl: text('image_url'),
   agentId: uuid('agent_id').references(() => users.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => [
+  index('properties_city_idx').on(table.city),
+  index('properties_type_idx').on(table.type),
+  index('properties_status_idx').on(table.status),
+]);
 
 // Klijenti
 export const clients = pgTable('clients', {

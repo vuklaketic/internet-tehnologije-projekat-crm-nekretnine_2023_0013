@@ -21,6 +21,7 @@ import { Modal } from '@/components/ui/modal';
 import { Pagination } from '@/components/ui/pagination';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useProperties } from '@/hooks/useProperties';
+import { useCurrencyContext, CurrencySelector } from '@/context/currency-context';
 
 export default function PropertiesPage() {
   const [page, setPage] = useState(1);
@@ -28,6 +29,19 @@ export default function PropertiesPage() {
   const [q, setQ] = useState('');
   const [status, setStatus] = useState('');
   const [type, setType] = useState('');
+  const [sort, setSort] = useState('newest');
+  const [userRole, setUserRole] = useState<string>('agent');
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.user?.role) setUserRole(d.user.role);
+      })
+      .catch(() => {});
+  }, []);
+
+  const { formatPrice } = useCurrencyContext();
 
   // Korišćenje sopstvenog custom hook-a za dohvatanje podataka
   const { properties, total, loading, refetch } = useProperties({
@@ -36,6 +50,7 @@ export default function PropertiesPage() {
     q,
     status,
     type,
+    sort,
   });
 
   // Modal za dodavanje nekretnine
@@ -175,10 +190,12 @@ export default function PropertiesPage() {
             <RiDownloadLine className="w-4 h-4" />
             Izvezi CSV
           </Button>
-          <Button onClick={() => setIsModalOpen(true)}>
-            <RiAddLine className="w-4 h-4" />
-            Dodaj novu nekretninu
-          </Button>
+          {userRole !== 'kupac' && (
+            <Button onClick={() => setIsModalOpen(true)}>
+              <RiAddLine className="w-4 h-4" />
+              Dodaj novu nekretninu
+            </Button>
+          )}
         </div>
       </div>
 
@@ -227,6 +244,29 @@ export default function PropertiesPage() {
             <option value="rezervisano">Rezervisano</option>
             <option value="prodato">Prodato</option>
           </select>
+
+          {/* Sortiranje po kriterijumima */}
+          <select
+            value={sort}
+            onChange={(e) => {
+              setSort(e.target.value);
+              setPage(1);
+            }}
+            aria-label="Sortiranje nekretnina"
+            className="px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="newest">Najnovije</option>
+            <option value="price_asc">Cena: rastuće</option>
+            <option value="price_desc">Cena: opadajuće</option>
+            <option value="area_asc">Kvadratura: manja</option>
+            <option value="area_desc">Kvadratura: veća</option>
+          </select>
+
+          {/* Konvertor valuta (Combo Box) */}
+          <div className="flex items-center gap-1.5 pl-2 border-l border-slate-200 dark:border-slate-700">
+            <span className="text-[11px] font-medium text-slate-400 hidden xl:inline">Valuta:</span>
+            <CurrencySelector />
+          </div>
         </div>
       </div>
 
@@ -279,7 +319,7 @@ export default function PropertiesPage() {
                 <div className="p-5 space-y-3">
                   <div className="flex items-baseline justify-between">
                     <span className="text-xl font-extrabold text-blue-600">
-                      {Number(prop.priceEur).toLocaleString('sr-RS')} €
+                      {formatPrice(prop.priceEur)}
                     </span>
                     <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                       {prop.type}
@@ -313,12 +353,14 @@ export default function PropertiesPage() {
                 >
                   Detalji i mapa <RiExternalLinkLine className="w-3.5 h-3.5" />
                 </Link>
-                <button
-                  onClick={() => handleDelete(prop.id)}
-                  className="text-xs text-rose-500 hover:text-rose-700 font-medium p-1 flex items-center gap-1 cursor-pointer"
-                >
-                  <RiDeleteBinLine className="w-3.5 h-3.5" /> Obriši
-                </button>
+                {userRole !== 'kupac' && (
+                  <button
+                    onClick={() => handleDelete(prop.id)}
+                    className="text-xs text-rose-500 hover:text-rose-700 font-medium p-1 flex items-center gap-1 cursor-pointer"
+                  >
+                    <RiDeleteBinLine className="w-3.5 h-3.5" /> Obriši
+                  </button>
+                )}
               </div>
             </div>
           ))}

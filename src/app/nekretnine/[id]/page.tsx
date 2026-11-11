@@ -16,6 +16,7 @@ import {
 } from '@remixicon/react';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { PropertyMapWrapper } from '@/components/map/property-map-wrapper';
+import { PropertyPriceCard } from '@/components/property/property-price-card';
 
 async function getCurrencyRate() {
   try {
@@ -120,16 +121,8 @@ export default async function PropertyDetailPage({
               </p>
             </div>
 
-            {/* Prikaz cene u EUR i RSD */}
-            <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl border border-slate-100 dark:border-slate-800 text-right">
-              <div className="text-2xl md:text-3xl font-extrabold text-blue-600">
-                {priceEurNum.toLocaleString('sr-RS')} €
-              </div>
-              <div className="text-xs text-slate-500 mt-0.5 flex items-center justify-end gap-1">
-                <RiExchangeDollarLine className="w-3.5 h-3.5 text-emerald-500" />
-                cca {priceRsd.toLocaleString('sr-RS')} RSD (1 EUR = {eurRsdRate.toFixed(2)})
-              </div>
-            </div>
+            {/* Prikaz cene sa konverzijom valuta */}
+            <PropertyPriceCard priceEur={prop.priceEur} />
           </div>
 
           {/* Grid parametara */}
@@ -186,6 +179,25 @@ export default async function PropertyDetailPage({
                 <RiMailLine className="w-4 h-4 text-blue-500" /> {prop.agentEmail}
               </span>
             )}
+          </div>
+
+          {/* Zakazivanje razgledanja */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900">
+            <div>
+              <p className="text-sm font-bold text-blue-950 dark:text-blue-100">
+                Želite da pogledate ovu nekretninu uživo?
+              </p>
+              <p className="text-xs text-blue-700 dark:text-blue-300 mt-0.5">
+                Zakažite direktan termin razgledanja sa nadležnim agentom.
+              </p>
+            </div>
+            <Link
+              href="/razgledanja"
+              className="px-4 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-2xs shrink-0 flex items-center justify-center gap-1.5"
+            >
+              <RiCalendarLine className="w-4 h-4" />
+              Zakaži termin razgledanja
+            </Link>
           </div>
 
           {/* Lokacija na mapi (Nominatim Geocoding + Leaflet) */}

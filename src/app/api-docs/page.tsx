@@ -24,10 +24,18 @@ export default function ApiDocsPage() {
         {
           method: 'POST',
           path: '/api/auth/register',
-          desc: 'Registracija novog agenta ili administratora u sistemu.',
+          desc: 'Registracija novog naloga u sistemu (admin, agent ili kupac).',
           auth: false,
-          req: '{ "fullName": "...", "email": "...", "password": "...", "role": "agent" }',
+          req: '{ "fullName": "...", "email": "...", "password": "...", "role": "kupac" }',
           res: '201 Created + auth cookie',
+        },
+        {
+          method: 'POST',
+          path: '/api/auth/reset-password',
+          desc: 'Oporavak lozinke za zaboravljene naloge uz bcrypt enkripciju.',
+          auth: false,
+          req: '{ "email": "...", "newPassword": "...", "confirmPassword": "..." }',
+          res: '200 OK',
         },
         {
           method: 'GET',
@@ -51,7 +59,7 @@ export default function ApiDocsPage() {
         {
           method: 'GET',
           path: '/api/properties',
-          desc: 'Izlistavanje nekretnina sa podrškom za pretragu (?q=), filtere (?type=, ?status=) i paginaciju (?page=, ?pageSize=).',
+          desc: 'Izlistavanje nekretnina sa podrškom za pretragu (?q=), filtere (?type=, ?status=), sortiranje (?sort=) i paginaciju (?page=, ?pageSize=).',
           auth: true,
           res: '{ "items": [...], "total": 24, "page": 1, "pageSize": 10 }',
         },
@@ -62,6 +70,14 @@ export default function ApiDocsPage() {
           auth: true,
           req: '{ "title": "Stan Vračar", "type": "stan", "purpose": "prodaja", "priceEur": "150000", "areaM2": 65, "address": "...", "city": "Beograd" }',
           res: '201 Created',
+        },
+        {
+          method: 'POST',
+          path: '/api/upload',
+          desc: 'Otpremanje slike nekretnine na server (multipart/form-data, do 5MB).',
+          auth: true,
+          req: 'FormData { file: <binary> }',
+          res: '{ "url": "/uploads/1731520000-abcd.jpg" }',
         },
         {
           method: 'GET',
@@ -147,9 +163,9 @@ export default function ApiDocsPage() {
         {
           method: 'GET',
           path: '/api/currency',
-          desc: 'Dohvatanje live kursa EUR/RSD preko open.er-api.com API-ja uz serversko keširanje od 1h.',
+          desc: 'Dohvatanje live kurseva valuta (EUR, RSD, USD, CHF, GBP) preko open.er-api.com uz serversko keširanje od 1h.',
           auth: false,
-          res: '{ "base": "EUR", "rsd": 117.2, "cached": true }',
+          res: '{ "base": "EUR", "rates": { "RSD": 117.2, "USD": 1.08, "CHF": 0.96, "GBP": 0.85 }, "cached": true }',
         },
         {
           method: 'GET',
